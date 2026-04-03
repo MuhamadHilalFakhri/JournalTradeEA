@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { format } from "date-fns";
 import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/header";
@@ -37,8 +38,8 @@ export default function JournalPage() {
           search: search || undefined,
           eaName: eaFilter !== "all" ? eaFilter : undefined,
           result: resultFilter !== "all" ? resultFilter : undefined,
-          dateFrom: dateFrom?.toISOString(),
-          dateTo: dateTo?.toISOString(),
+          dateFrom: dateFrom ? format(dateFrom, "yyyy-MM-dd") : undefined,
+          dateTo: dateTo ? format(dateTo, "yyyy-MM-dd") : undefined,
           page,
           pageSize: 10,
         }),

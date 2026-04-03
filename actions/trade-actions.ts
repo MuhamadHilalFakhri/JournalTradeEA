@@ -1,7 +1,6 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
-import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/db";
@@ -44,6 +43,14 @@ function revalidateAppPaths() {
     revalidatePath(path);
   }
 }
+
+const toDateOnlyString = (value: Date) => value.toISOString().split("T")[0];
+
+const parseDateOnlyToUtcStart = (value: string) =>
+  new Date(`${value}T00:00:00.000Z`);
+
+const parseDateOnlyToUtcEnd = (value: string) =>
+  new Date(`${value}T23:59:59.999Z`);
 
 async function getLegacyAccountDefaults(): Promise<AccountSnapshot> {
   const [firstTrade, aggregate] = await Promise.all([
@@ -350,10 +357,10 @@ export async function getTrades(params?: {
   if (params?.dateFrom || params?.dateTo) {
     where.date = {};
     if (params?.dateFrom) {
-      where.date.gte = new Date(params.dateFrom);
+      where.date.gte = parseDateOnlyToUtcStart(params.dateFrom);
     }
     if (params?.dateTo) {
-      where.date.lte = new Date(params.dateTo);
+      where.date.lte = parseDateOnlyToUtcEnd(params.dateTo);
     }
   }
 
@@ -378,7 +385,7 @@ export async function getTrades(params?: {
   return {
     trades: trades.map((trade) => ({
       ...trade,
-      date: trade.date.toISOString(),
+      date: toDateOnlyString(trade.date),
       createdAt: trade.createdAt.toISOString(),
       updatedAt: trade.updatedAt.toISOString(),
     })),
@@ -396,7 +403,7 @@ export async function getTradeById(id: number) {
 
   return {
     ...trade,
-    date: trade.date.toISOString(),
+    date: toDateOnlyString(trade.date),
     createdAt: trade.createdAt.toISOString(),
     updatedAt: trade.updatedAt.toISOString(),
   };
@@ -479,7 +486,7 @@ export async function getChartData() {
     return {
       trade: `#${trade.tradeNumber}`,
       balance: roundCurrency(runningBalance),
-      date: trade.date.toISOString().split("T")[0],
+      date: toDateOnlyString(trade.date),
     };
   });
 
@@ -538,7 +545,7 @@ export async function getPnlCalendarData() {
   >();
 
   for (const trade of trades) {
-    const dateKey = format(trade.date, "yyyy-MM-dd");
+    const dateKey = toDateOnlyString(trade.date);
     const existingDay = calendarMap.get(dateKey);
     const tradePnl = trade.profit - trade.loss;
 

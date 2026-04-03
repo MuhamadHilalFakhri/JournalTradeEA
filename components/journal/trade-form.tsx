@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Calendar as CalendarIcon, Loader2, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { tradeFormSchema, TradeFormValues, EA_NAMES, TRADE_RESULTS, DEFAULT_PAIR } from "@/lib/validations/trade";
@@ -58,6 +58,9 @@ export function TradeForm({ open, onOpenChange, editTrade, onSuccess }: TradeFor
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditing = !!editTrade;
 
+  const toUtcDateOnly = (value: Date) =>
+    new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()));
+
   const form = useForm<TradeFormValues>({
     resolver: zodResolver(tradeFormSchema) as Resolver<TradeFormValues>,
     defaultValues: {
@@ -81,7 +84,7 @@ export function TradeForm({ open, onOpenChange, editTrade, onSuccess }: TradeFor
   useEffect(() => {
     if (open && editTrade) {
       form.reset({
-        date: new Date(editTrade.date),
+        date: parseISO(editTrade.date),
         sessionStart: editTrade.sessionStart || "09:00",
         sessionEnd: editTrade.sessionEnd || "10:00",
         eaName: editTrade.eaName as typeof EA_NAMES[number],
@@ -131,9 +134,14 @@ export function TradeForm({ open, onOpenChange, editTrade, onSuccess }: TradeFor
   const onSubmit = async (values: TradeFormValues) => {
     setIsSubmitting(true);
     try {
+      const normalizedValues: TradeFormValues = {
+        ...values,
+        date: toUtcDateOnly(values.date),
+      };
+
       const result = isEditing
-        ? await updateTrade(editTrade!.id, values)
-        : await createTrade(values);
+        ? await updateTrade(editTrade!.id, normalizedValues)
+        : await createTrade(normalizedValues);
 
       if (result.success) {
         toast.success(result.message);

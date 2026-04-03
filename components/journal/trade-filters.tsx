@@ -102,15 +102,15 @@ export function TradeFilters({
       </div>
 
       {/* Date Range */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
           <Popover>
             <PopoverTrigger
               render={
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full sm:w-[160px] justify-start text-left font-normal text-xs",
+                    "w-full justify-start text-left font-normal text-xs sm:w-40",
                     !dateFrom && "text-muted-foreground"
                   )}
                 >
@@ -128,7 +128,7 @@ export function TradeFilters({
             </PopoverContent>
           </Popover>
 
-          <span className="text-xs text-muted-foreground">to</span>
+          <span className="hidden text-center text-xs text-muted-foreground sm:block">to</span>
 
           <Popover>
             <PopoverTrigger
@@ -136,7 +136,7 @@ export function TradeFilters({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full sm:w-[160px] justify-start text-left font-normal text-xs",
+                    "w-full justify-start text-left font-normal text-xs sm:w-40",
                     !dateTo && "text-muted-foreground"
                   )}
                 >
@@ -160,7 +160,7 @@ export function TradeFilters({
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="w-full text-xs text-muted-foreground hover:text-foreground sm:w-auto"
           >
             <X className="h-3.5 w-3.5 mr-1" />
             Clear filters

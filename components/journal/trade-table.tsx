@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Pencil, Trash2, MoreHorizontal, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -95,7 +95,7 @@ export function TradeTable({
                   {trade.tradeNumber}
                 </TableCell>
                 <TableCell className="text-sm">
-                  {format(new Date(trade.date), "MMM dd, yyyy")}
+                  {format(parseISO(trade.date), "MMM dd, yyyy")}
                 </TableCell>
                 <TableCell className="text-sm font-mono">
                   {formatSession(trade.sessionStart, trade.sessionEnd)}
@@ -224,7 +224,7 @@ export function TradeTable({
               <div>
                 <p className="text-[10px] text-muted-foreground uppercase">Date</p>
                 <p className="font-medium">
-                  {format(new Date(trade.date), "MMM dd, yyyy")}
+                  {format(parseISO(trade.date), "MMM dd, yyyy")}
                 </p>
               </div>
               <div>
