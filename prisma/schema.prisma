@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+model Trade {
+  id                Int      @id @default(autoincrement())
+  tradeNumber       Int      @unique
+  date              DateTime
+  sessionStart      String?
+  sessionEnd        String?
+  eaName            String
+  pair              String   @default("XAUUSD")
+  result            String
+  profit            Float    @default(0)
+  loss              Float    @default(0)
+  withdrawal        Float    @default(0)
+  initialCapital    Float    @default(0)
+  balance           Float    @default(0)
+  profitLossPercent Float    @default(0)
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([date])
+  @@index([eaName])
+  @@index([result])
+  @@map("trades")
+}
+
+model AccountProfile {
+  id              Int      @id
+  initialBalance  Float?
+  totalWithdrawal Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("account_profiles")
+}

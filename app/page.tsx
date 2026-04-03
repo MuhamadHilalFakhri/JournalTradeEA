@@ -1,65 +1,78 @@
-import Image from "next/image";
+import { Header } from "@/components/layout/header";
+import { StatsCards } from "@/components/dashboard/stats-cards";
+import { EquityCurve } from "@/components/dashboard/equity-curve";
+import { WinLoseChart } from "@/components/dashboard/win-lose-chart";
+import { ProfitLossChart } from "@/components/dashboard/profit-loss-chart";
+import { EASummary } from "@/components/dashboard/ea-summary";
+import {
+  getAccountSettings,
+  getChartData,
+  getDashboardStats,
+} from "@/actions/trade-actions";
+import { DashboardEmptyState } from "@/components/dashboard/empty-state";
+import { AccountBalancePanel } from "@/components/dashboard/account-balance-panel";
 
-export default function Home() {
+export default async function DashboardPage() {
+  const [stats, chartData, account] = await Promise.all([
+    getDashboardStats(),
+    getChartData(),
+    getAccountSettings(),
+  ]);
+
+  const hasData = stats.totalTrades > 0;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col min-h-screen">
+      <Header
+        title="Dashboard"
+        description="Overview of your EA/bot trading performance"
+      />
+
+      <div className="flex-1 p-4 md:p-6 space-y-6">
+        <AccountBalancePanel
+          key={`${account.initialBalance ?? "unset"}-${account.totalWithdrawal}`}
+          account={account}
+          currentBalance={stats.currentBalance}
+          hasTrades={hasData}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        {stats.hasInitialBalance ? <StatsCards stats={stats} /> : null}
+
+        {!stats.hasInitialBalance ? (
+          <div className="rounded-2xl border border-dashed border-indigo-500/30 bg-indigo-500/6 px-5 py-8 text-center">
+            <h2 className="text-lg font-semibold">Set initial balance first</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Setelah balance awal diisi dari dashboard, journal akan terbuka dan
+              seluruh chart performa akan mulai menghitung otomatis.
+            </p>
+          </div>
+        ) : !hasData ? (
+          <DashboardEmptyState />
+        ) : (
+          <>
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+              <div className="lg:col-span-2">
+                <EquityCurve data={chartData.equityCurve} />
+              </div>
+              <div>
+                <WinLoseChart data={chartData.winLose} />
+              </div>
+            </div>
+
+            {/* Profit/Loss + EA Summary */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <ProfitLossChart data={chartData.profitLoss} />
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider pl-1">
+                  EA Performance
+                </h2>
+                <EASummary data={chartData.eaSummary} />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
