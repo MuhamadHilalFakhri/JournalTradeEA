@@ -29,6 +29,22 @@ interface PnlCalendarGridProps {
 }
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekDaysMobile = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+const formatCompactCentCurrency = (value: number) => {
+  const absoluteValue = Math.abs(value);
+
+  if (absoluteValue >= 1000) {
+    const compactValue = new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+
+    return `${compactValue}c`;
+  }
+
+  return formatCentCurrency(value, { maximumFractionDigits: 0 });
+};
 
 export function PnlCalendarGrid({ entries }: PnlCalendarGridProps) {
   const initialMonth = entries.length > 0 ? parseISO(entries[entries.length - 1].date) : new Date();
@@ -87,7 +103,7 @@ export function PnlCalendarGrid({ entries }: PnlCalendarGridProps) {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start lg:self-auto">
+          <div className="flex w-full items-center justify-between gap-2 self-start lg:w-auto lg:justify-start lg:self-auto">
             <Button
               variant="outline"
               size="icon"
@@ -95,7 +111,7 @@ export function PnlCalendarGrid({ entries }: PnlCalendarGridProps) {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="min-w-40 text-center text-sm font-semibold">
+            <div className="min-w-0 flex-1 text-center text-sm font-semibold lg:min-w-40 lg:flex-none">
               {format(currentMonth, "MMMM yyyy")}
             </div>
             <Button
@@ -150,67 +166,81 @@ export function PnlCalendarGrid({ entries }: PnlCalendarGridProps) {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-border/80">
-          <div className="grid grid-cols-7 border-b border-border/70 bg-muted/25">
-            {weekDays.map((day) => (
-              <div
-                key={day}
-                className="px-2 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
-              >
-                {day}
+        <div className="rounded-3xl border border-border/80">
+          <div className="overflow-x-auto overscroll-x-contain">
+            <div className="min-w-[560px]">
+              <div className="grid grid-cols-7 border-b border-border/70 bg-muted/25">
+                {weekDays.map((day, index) => (
+                  <div
+                    key={day}
+                    className="px-2 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px] sm:tracking-[0.16em]"
+                  >
+                    <span className="sm:hidden">{weekDaysMobile[index]}</span>
+                    <span className="hidden sm:inline">{day}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="grid grid-cols-7">
-            {visibleDays.map((day) => {
-              const key = format(day, "yyyy-MM-dd");
-              const entry = entriesByDate.get(key);
-              const isCurrentMonth = isSameMonth(day, currentMonth);
-              const pnlValue = entry?.pnl ?? 0;
+              <div className="grid grid-cols-7">
+                {visibleDays.map((day) => {
+                  const key = format(day, "yyyy-MM-dd");
+                  const entry = entriesByDate.get(key);
+                  const isCurrentMonth = isSameMonth(day, currentMonth);
+                  const pnlValue = entry?.pnl ?? 0;
 
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    "min-h-28 border-b border-r border-border/60 p-2 transition-colors last:border-r-0",
-                    !isCurrentMonth && "bg-muted/10 text-muted-foreground/55",
-                    pnlValue > 0 && "bg-emerald-500/10",
-                    pnlValue < 0 && "bg-red-500/10"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span
+                  return (
+                    <div
+                      key={key}
                       className={cn(
-                        "inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium",
-                        isToday(day) && "bg-indigo-500/14 text-indigo-400",
-                        !isToday(day) && isCurrentMonth && "text-foreground",
-                        !isCurrentMonth && "text-muted-foreground/55"
+                        "min-h-24 border-b border-r border-border/60 p-2 transition-colors last:border-r-0 sm:min-h-28",
+                        !isCurrentMonth && "bg-muted/10 text-muted-foreground/55",
+                        pnlValue > 0 && "bg-emerald-500/10",
+                        pnlValue < 0 && "bg-red-500/10"
                       )}
                     >
-                      {format(day, "d")}
-                    </span>
-                  </div>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={cn(
+                            "inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium",
+                            isToday(day) && "bg-indigo-500/14 text-indigo-400",
+                            !isToday(day) && isCurrentMonth && "text-foreground",
+                            !isCurrentMonth && "text-muted-foreground/55"
+                          )}
+                        >
+                          {format(day, "d")}
+                        </span>
+                      </div>
 
-                  {entry ? (
-                    <div className="mt-5 space-y-1">
-                      <p
-                        className={cn(
-                          "text-sm font-semibold",
-                          entry.pnl >= 0 ? "text-emerald-500" : "text-red-500"
-                        )}
-                      >
-                        {entry.pnl > 0 ? "+" : ""}
-                        {formatCentCurrency(entry.pnl, { maximumFractionDigits: 0 })}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {entry.tradeCount} {entry.tradeCount > 1 ? "trades" : "trade"}
-                      </p>
+                      {entry ? (
+                        <div className="mt-3 space-y-1 sm:mt-5">
+                          <p
+                            className={cn(
+                              "text-xs font-semibold leading-tight sm:text-sm",
+                              entry.pnl >= 0 ? "text-emerald-500" : "text-red-500"
+                            )}
+                          >
+                            <span className="sm:hidden">
+                              {entry.pnl > 0 ? "+" : ""}
+                              {formatCompactCentCurrency(entry.pnl)}
+                            </span>
+                            <span className="hidden sm:inline">
+                              {entry.pnl > 0 ? "+" : ""}
+                              {formatCentCurrency(entry.pnl, { maximumFractionDigits: 0 })}
+                            </span>
+                          </p>
+                          <p className="text-[10px] text-muted-foreground sm:text-[11px]">
+                            <span className="sm:hidden">{entry.tradeCount}t</span>
+                            <span className="hidden sm:inline">
+                              {entry.tradeCount} {entry.tradeCount > 1 ? "trades" : "trade"}
+                            </span>
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
-                  ) : null}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
