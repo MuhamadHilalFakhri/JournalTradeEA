@@ -1,8 +1,11 @@
+import { connection } from "next/server";
 import { getPnlCalendarData } from "@/actions/trade-actions";
 import { Header } from "@/components/layout/header";
 import { PnlCalendarGrid } from "@/components/pnl/pnl-calendar-grid";
 
 export default async function PnlCalendarPage() {
+  await connection();
+
   const entries = await getPnlCalendarData();
 
   return (

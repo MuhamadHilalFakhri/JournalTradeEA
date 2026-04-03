@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Header } from "@/components/layout/header";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { EquityCurve } from "@/components/dashboard/equity-curve";
@@ -13,6 +14,8 @@ import { DashboardEmptyState } from "@/components/dashboard/empty-state";
 import { AccountBalancePanel } from "@/components/dashboard/account-balance-panel";
 
 export default async function DashboardPage() {
+  await connection();
+
   const [stats, chartData, account] = await Promise.all([
     getDashboardStats(),
     getChartData(),
